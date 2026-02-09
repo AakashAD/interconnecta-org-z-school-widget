@@ -1,0 +1,93 @@
+# Account Hierarchy Widget (Zoho CRM)
+
+## Overview
+This widget provides a **hierarchical account view with embedded deals** inside Zoho CRM.  
+It is designed to help users clearly understand **where an account sits in the hierarchy** (above and below) and view **all related deals per account level** in one place.
+
+The widget is rendered on the **Account module** and visually represents the full account ladder along with associated deals.
+
+---
+
+## Key Features
+
+- Displays **State** once as a global context for the entire hierarchy
+- Shows **full account hierarchy** (parent, current, and child accounts)
+- Each hierarchy level is rendered as an **Account card**
+- **Deals are embedded inside each account card**
+- Supports **0…N deals per account**
+- Accounts with **no deals are still shown**
+- Semantic **color coding** for hierarchy levels
+- Expand / Collapse behavior for better readability
+
+---
+
+## Widget Placement
+
+- **Module:** Accounts
+- **Context:** Account Detail Page
+- **Purpose:** Visualize the full hierarchy that the current account belongs to
+
+---
+
+## UI Structure
+
+### 1. State (Top-Level Context)
+- Displayed once at the top (e.g. `STATE: NEW JERSEY`)
+- Applies to the entire hierarchy
+- Not repeated inside account cards
+
+---
+
+### 2. Account Cards (Hierarchy Levels)
+
+Each hierarchy level is represented as a card containing:
+
+- **Account Name**
+- **Hierarchy Label** (e.g. Municipality, Municipal Department, County)
+- **Department Type** (when applicable)
+- **Embedded list of Deals**
+
+Accounts are displayed in hierarchical order (top ↔ bottom).
+
+---
+
+### 3. Deals Inside Account Cards
+
+Each account card can contain:
+
+- 0 or more deals
+- Each deal displays:
+  - Deal Name
+  - Stage
+  - Amount
+- If an account has no deals, a placeholder message is shown:
+  > *No deals for this account*
+
+---
+
+## Color Coding (Semantic)
+
+Colors are used to visually distinguish hierarchy levels:
+
+| Hierarchy Level         | Color (Left Border) |
+|------------------------|---------------------|
+| Municipal Department   | Blue                |
+| Municipality           | Green               |
+| County Department      | Purple              |
+| County                 | Orange              |
+
+Colors are **consistent and meaningful**, not decorative.
+
+---
+
+## Expand / Collapse Behavior
+
+- Each account card can be expanded or collapsed individually
+- Global controls:
+  - **Expand All**
+  - **Collapse All**
+- Useful for large hierarchies with many deals
+
+---
+
+## Example Hierarchy

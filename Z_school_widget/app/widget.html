@@ -2,7 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>Deal Hierarchy Widget</title>
+
   <script src="https://live.zwidgets.com/js-sdk/1.1/ZohoEmbeddedAppSDK.min.js"></script>
+  <script src="https://app-assets.web.app/widgetsdk/ZohoEmbededAppSDK.min.js"></script>
 
   <style>
     body {
@@ -35,13 +38,8 @@
       color: #fff;
     }
 
-    .controls .expand {
-      background-color: #1e88e5;
-    }
-
-    .controls .collapse {
-      background-color: #e53935;
-    }
+    .expand { background-color: #1e88e5; }
+    .collapse { background-color: #e53935; }
 
     /* State Banner */
     .state-banner {
@@ -53,43 +51,49 @@
       font-weight: bold;
     }
 
-
-    /* Account Section */
+    /* Account Cards */
     .account-card {
       background: #fff;
       border-radius: 6px;
       padding: 12px;
       margin-bottom: 16px;
       border-left: 6px solid #1e88e5;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .account-title {
       font-weight: bold;
       font-size: 14px;
       margin-bottom: 4px;
+      display: flex;
+      align-items: center;
     }
 
     .account-meta {
       font-size: 12px;
       color: #555;
       margin-bottom: 8px;
+      padding-left: 28px;
     }
 
     .toggle {
       cursor: pointer;
       margin-right: 6px;
       font-weight: bold;
+      background: none;
+      border: none;
+      font-size: 16px;
+      width: 20px;
     }
 
     .deal-row {
       font-size: 12px;
-      padding: 4px 0;
+      padding: 6px 0;
       border-bottom: 1px dashed #eee;
+      margin-left: 28px;
     }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
     /* Stage Badges */
     .stage {
@@ -98,16 +102,17 @@
       border-radius: 10px;
       font-size: 11px;
     }
-    .won { background:#c8e6c9; }
-    .completed { background:#fff9c4; }
-    .paid { background:#dcedc8; }
-    .lead { background:#e3f2fd; }
 
-    /* Hierarchy colors */
-    .account-card.municipal-dept { border-left-color: #1e88e5; }
-    .account-card.municipality { border-left-color: #43a047; }
-    .account-card.county-dept { border-left-color: #8e24aa; }
-    .account-card.county { border-left-color: #fb8c00; }
+    .won { background:#c8e6c9; color: #2e7d32; }
+    .completed { background:#fff9c4; color: #f57f17; }
+    .paid { background:#dcedc8; color: #33691e; }
+    .lead { background:#e3f2fd; color: #1565c0; }
+
+    /* Hierarchy Colors */
+    .municipal-dept { border-left-color: #1e88e5; }
+    .municipality { border-left-color: #43a047; }
+    .county-dept { border-left-color: #8e24aa; }
+    .county { border-left-color: #fb8c00; }
 
     .badge {
       display: inline-block;
@@ -117,21 +122,20 @@
       margin-right: 6px;
       background: #e3f2fd;
     }
-    .badge.secondary {
-      background: #f1f1f1;
-    }
+
+    .badge.secondary { background: #f1f1f1; color: #666; }
 
     .deal-list.empty {
       font-size: 12px;
       color: #777;
       font-style: italic;
+      padding-left: 28px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Header -->
   <div class="widget-header">
     <div class="widget-title">Deal Hierarchy</div>
     <div class="controls">
@@ -140,15 +144,11 @@
     </div>
   </div>
 
-  <!-- STATE -->
-  <div class="state-banner">
-    STATE: NEW JERSEY
-  </div>
+  <div class="state-banner">STATE: NEW JERSEY</div>
 
-  <!-- ACCOUNT: Municipal Department -->
   <div class="account-card municipal-dept">
     <div class="account-title">
-      <span class="toggle" onclick="toggleSection('acc1')">▾</span>
+      <button class="toggle" onclick="toggleSection(event, 'acc1')">▾</button>
       Toms River Police Department
     </div>
     <div class="account-meta">
@@ -156,58 +156,32 @@
       <span class="badge secondary">Police Department</span>
     </div>
 
-    <div id="acc1">
-      <div class="deal-row">
-        NJ – Toms River Police Dept – ORPO – 2025-06 |
-        <span class="stage won">Closed-Won</span> |
-        $4,500.00
-      </div>
-      <div class="deal-row">
-        Nicholas Lugo – SH-Training |
-        <span class="stage completed">Course Completed</span> |
-        $450.00
-      </div>
-      <div class="deal-row">
-        Timothy McGarrey – SH-Training |
-        <span class="stage paid">Registered & Paid</span> |
-        $450.00
-      </div>
-      <div class="deal-row">
-        James Skripko – SH-Training |
-        <span class="stage paid">Registered & Paid</span> |
-        $450.00
-      </div>
+    <div id="acc1" class="deal-list">
+      <div class="deal-row">NJ – Toms River Police Dept – ORPO – 2025-06 | <span class="stage won">Closed-Won</span> | $4,500.00</div>
+      <div class="deal-row">Nicholas Lugo – SH-Training | <span class="stage completed">Course Completed</span> | $450.00</div>
+      <div class="deal-row">Timothy McGarrey – SH-Training | <span class="stage paid">Registered & Paid</span> | $450.00</div>
+      <div class="deal-row">James Skripko – SH-Training | <span class="stage paid">Registered & Paid</span> | $450.00</div>
     </div>
   </div>
 
-  <!-- ACCOUNT: Municipality -->
   <div class="account-card municipality">
     <div class="account-title">
-      <span class="toggle" onclick="toggleSection('acc2')">▾</span>
+      <button class="toggle" onclick="toggleSection(event, 'acc2')">▾</button>
       Toms River Township, NJ
     </div>
     <div class="account-meta">
       <span class="badge">Municipality</span>
     </div>
 
-    <div id="acc2">
-      <div class="deal-row">
-        NJ – Toms River Township – ORPO – 2025-03 |
-        <span class="stage won">Closed-Won</span> |
-        $4,500.00
-      </div>
-      <div class="deal-row">
-        NJ – Toms River Township – Training – 2025-04 |
-        <span class="stage lead">Lead Received</span> |
-        $6,529,500.00
-      </div>
+    <div id="acc2" class="deal-list">
+      <div class="deal-row">NJ – Toms River Township – ORPO – 2025-03 | <span class="stage won">Closed-Won</span> | $4,500.00</div>
+      <div class="deal-row">NJ – Toms River Township – Training – 2025-04 | <span class="stage lead">Lead Received</span> | $6,529,500.00</div>
     </div>
   </div>
 
-  <!-- ACCOUNT: County (No Deals) -->
   <div class="account-card county">
     <div class="account-title">
-      <span class="toggle" onclick="toggleSection('acc3')">▾</span>
+      <button class="toggle" onclick="toggleSection(event, 'acc3')">▾</button>
       Ocean County
     </div>
     <div class="account-meta">
@@ -220,7 +194,8 @@
   </div>
 
   <script>
-    function toggleSection(id) {
+    /* --- UI Logic --- */
+    function toggleSection(event, id) {
       const el = document.getElementById(id);
       const icon = event.target;
       if (el.classList.contains('hidden')) {
@@ -233,20 +208,47 @@
     }
 
     function expandAll() {
-      document.querySelectorAll('[id^="acc"]').forEach(el => {
-        el.classList.remove('hidden');
-      });
+      document.querySelectorAll('.deal-list').forEach(el => el.classList.remove('hidden'));
       document.querySelectorAll('.toggle').forEach(t => t.textContent = '▾');
     }
 
     function collapseAll() {
-      document.querySelectorAll('[id^="acc"]').forEach(el => {
-        el.classList.add('hidden');
-      });
+      document.querySelectorAll('.deal-list').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.toggle').forEach(t => t.textContent = '▸');
     }
 
-    ZOHO.embeddedApp.init();
+
+// Subscribe to the EmbeddedApp onPageLoad event
+ZOHO.embeddedApp.on("PageLoad", function (data) {
+    
+    console.log("Page Load Data:", data);
+
+    // Get Account record using EntityId
+    ZOHO.CRM.API.getRecord({
+        Entity: "Accounts",
+        RecordID: data.EntityId,
+        approved: "both"
+    })
+    .then(function (response) {
+        console.log("Account Record Response:", response);
+    })
+    .catch(function (error) {
+        console.error("Error fetching account record:", error);
+    });
+    // get relate list of deals for the account
+ZOHO.CRM.API.getRelatedRecords({Entity:"Accounts",RecordID:data.EntityId,RelatedList:"Deals",page:1,per_page:200})
+.then(function(data){
+    console.log(data)
+})
+//prints
+
+
+});
+
+
+
+// Initialize the widget
+ZOHO.embeddedApp.init();
   </script>
 
 </body>
