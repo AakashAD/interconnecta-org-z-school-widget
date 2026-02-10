@@ -108,6 +108,36 @@
     .paid { background:#dcedc8; color: #33691e; }
     .lead { background:#e3f2fd; color: #1565c0; }
 
+    /* Deal Status Badges (Zoho-like) */
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 0 6px;
+    }
+
+    .status-closed-won {
+      background: #e6f4ea;
+      color: #1e7e34;
+    }
+
+    .status-course-completed {
+      background: #fff4e5;
+      color: #b45309;
+    }
+
+    .status-registered-paid {
+      background: #eaf7ea;
+      color: #2f7a2f;
+    }
+
+    .status-lead-received {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+
     /* Hierarchy Colors */
     .municipal-dept { border-left-color: #1e88e5; }
     .municipality { border-left-color: #43a047; }
@@ -131,7 +161,60 @@
       font-style: italic;
       padding-left: 28px;
     }
+
+    /* Deal Summary */
+    .deal-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0 10px 28px;
+    }
+
+    .deal-summary .summary-box {
+      background: #f5f7fa;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .summary-total {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    /* Active summary filter */
+    .summary-box.active {
+      outline: 2px solid #1e88e5;
+      background: #e8f0fe;
+    }
+
+    /* Deal row separators */
+    .deal-sep {
+      margin: 0 6px;
+      color: #9aa0a6;
+      font-weight: normal;
+    }
+
+    .deal-name {
+      font-weight: 500;
+    }
+
+    .deal-amount {
+      margin-left: 2px;
+    }
+      /* Separator between summary pills */
+  .deal-summary .summary-box:not(:last-child)::after {
+    content: "|";
+    margin-left: 8px;
+    color: #9aa0a6;
+    font-weight: normal;
+  }
   </style>
+</head>
+
+
 </head>
 
 <body>
@@ -194,6 +277,9 @@
   </div>
 
   <script>
+    let ALL_DEALS = [];
+    let ACTIVE_STAGE_FILTER = null;
+
     /* --- UI Logic --- */
     function toggleSection(event, id) {
       const el = document.getElementById(id);
@@ -217,31 +303,181 @@
       document.querySelectorAll('.toggle').forEach(t => t.textContent = '▸');
     }
 
+    function renderDeals(deals, container) {
+      container.querySelectorAll(".deal-row").forEach(d => d.remove());
+
+      deals.forEach(function (deal) {
+        const dealName = deal.Deal_Name || "Deal";
+        const rawStatus = deal.Stage || deal.$status || "N/A";
+        const normalizedStatus = rawStatus.toLowerCase();
+        const amount = deal.Amount || 0;
+        const currency = deal.$currency_symbol || "$";
+
+        let statusClass = "";
+        if (normalizedStatus.includes("closed")) statusClass = "status-closed-won";
+        else if (normalizedStatus.includes("course")) statusClass = "status-course-completed";
+        else if (normalizedStatus.includes("registered")) statusClass = "status-registered-paid";
+        else if (normalizedStatus.includes("lead")) statusClass = "status-lead-received";
+
+        const row = document.createElement("div");
+        row.className = "deal-row";
+        row.innerHTML = `
+          <span class="deal-name">${dealName}</span>
+          <span class="deal-sep">|</span>
+          <span class="status-badge ${statusClass}">${rawStatus}</span>
+          <span class="deal-sep">|</span>
+          <strong class="deal-amount">${currency}${amount.toLocaleString()}</strong>
+        `;
+
+        container.appendChild(row);
+      });
+    }
+
 
 // Subscribe to the EmbeddedApp onPageLoad event
 ZOHO.embeddedApp.on("PageLoad", function (data) {
-    
-    console.log("Page Load Data:", data);
 
-    // Get Account record using EntityId
-    ZOHO.CRM.API.getRecord({
-        Entity: "Accounts",
-        RecordID: data.EntityId,
-        approved: "both"
-    })
-    .then(function (response) {
-        console.log("Account Record Response:", response);
-    })
-    .catch(function (error) {
-        console.error("Error fetching account record:", error);
+  console.log("Page Load Data:", data);
+
+  if (!data || !data.EntityId) {
+    console.warn("No EntityId found");
+    return;
+  }
+
+  const accountId = data.EntityId;
+
+  /* ===== FETCH ACCOUNT DETAILS ===== */
+  ZOHO.CRM.API.getRecord({
+    Entity: "Accounts",
+    RecordID: accountId,
+    approved: "both"
+  })
+  .then(function (response) {
+    console.log("Account Record Response:", response);
+
+    if (!response.data || !response.data.length) return;
+
+    const acc = response.data[0];
+
+    // Exact field mapping from Accounts module
+    const accountName = acc.Account_Name || "Account";
+    const state = acc.State || acc.Billing_State || "N/A";
+    const hierarchy = acc.Hierarchy || "N/A";
+    const department = acc.Department || "";
+
+    // Update STATE banner
+    const stateBanner = document.querySelector(".state-banner");
+    if (stateBanner) stateBanner.textContent = "STATE: " + state;
+
+    // Update Account title
+    const accTitle = document.querySelector(".municipal-dept .account-title");
+    if (accTitle) {
+      accTitle.innerHTML = `
+        <button class="toggle" onclick="toggleSection(event, 'acc1')">▾</button>
+        ${accountName}
+      `;
+    }
+
+    // Update hierarchy badge
+    const badges = document.querySelectorAll(".municipal-dept .badge");
+    if (badges[0]) badges[0].textContent = hierarchy;
+    if (badges[1]) badges[1].textContent = department;
+
+  })
+  .catch(function (error) {
+    console.error("Error fetching account record:", error);
+  });
+
+  /* ===== FETCH DEALS RELATED LIST ===== */
+  ZOHO.CRM.API.getRelatedRecords({
+    Entity: "Accounts",
+    RecordID: accountId,
+    RelatedList: "Deals",
+    page: 1,
+    per_page: 200
+  })
+  .then(function (response) {
+    console.log("Deals Related List Response:", response);
+
+    const deals = response.data || [];
+    ALL_DEALS = deals;
+    const dealContainer = document.getElementById("acc1");
+
+    if (!dealContainer) return;
+
+    // Clear existing static rows
+    dealContainer.innerHTML = "";
+
+    // ----- DEAL COUNTS -----
+    const totalDeals = deals.length;
+    const stageCountMap = {};
+
+    deals.forEach(d => {
+      const stage = (d.Stage || "Unknown").toLowerCase();
+      stageCountMap[stage] = (stageCountMap[stage] || 0) + 1;
     });
-    // get relate list of deals for the account
-ZOHO.CRM.API.getRelatedRecords({Entity:"Accounts",RecordID:data.EntityId,RelatedList:"Deals",page:1,per_page:200})
-.then(function(data){
-    console.log(data)
-})
-//prints
 
+    // ----- SUMMARY UI -----
+    const summaryDiv = document.createElement("div");
+    summaryDiv.className = "deal-summary";
+
+    // Total count
+    const totalBox = document.createElement("div");
+    totalBox.className = "summary-box summary-total";
+    totalBox.textContent = `Total Deals: ${totalDeals}`;
+    totalBox.style.cursor = "pointer";
+    totalBox.onclick = function () {
+      ACTIVE_STAGE_FILTER = null;
+
+      document.querySelectorAll(".deal-summary .summary-box")
+        .forEach(el => el.classList.remove("active"));
+
+      totalBox.classList.add("active");
+      renderDeals(ALL_DEALS, dealContainer);
+    };
+    summaryDiv.appendChild(totalBox);
+    totalBox.classList.add("active");
+
+    // Stage-wise counts
+    Object.keys(stageCountMap).forEach(stageKey => {
+      const box = document.createElement("div");
+      box.className = "summary-box";
+      box.style.cursor = "pointer";
+
+      box.textContent =
+        `${stageKey.replace(/(^\w|\s\w)/g, m => m.toUpperCase())}: ${stageCountMap[stageKey]}`;
+
+      box.onclick = function () {
+        ACTIVE_STAGE_FILTER = stageKey.toLowerCase();
+
+        document.querySelectorAll(".deal-summary .summary-box")
+          .forEach(el => el.classList.remove("active"));
+
+        box.classList.add("active");
+
+        const filteredDeals = ALL_DEALS.filter(d =>
+          (d.Stage || "").toLowerCase().includes(ACTIVE_STAGE_FILTER)
+        );
+
+        renderDeals(filteredDeals, dealContainer);
+      };
+
+      summaryDiv.appendChild(box);
+    });
+
+    // Attach summary
+    dealContainer.appendChild(summaryDiv);
+
+    if (!deals.length) {
+      dealContainer.innerHTML = "<div class='deal-list empty'>No deals for this account</div>";
+      return;
+    }
+
+    renderDeals(ALL_DEALS, dealContainer);
+  })
+  .catch(function (error) {
+    console.error("Error fetching deals:", error);
+  });
 
 });
 
